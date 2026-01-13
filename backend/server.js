@@ -1,5 +1,5 @@
 import express from "express";
-//import cors from "cors";
+import cors from "cors";
 import "dotenv/config";
 import { clerkMiddleware } from "@clerk/express";
 import aiRouter from "./routes/aiRoutes.js";
