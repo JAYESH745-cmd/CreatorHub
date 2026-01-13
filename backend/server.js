@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors";
+//import cors from "cors";
 import "dotenv/config";
 import { clerkMiddleware } from "@clerk/express";
 import aiRouter from "./routes/aiRoutes.js";
@@ -10,12 +10,7 @@ const app = express();
 
 await connectCloudinary();
 
-app.use(cors({
-  origin: "https://creator-hub-nine.vercel.app/",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors());
 
 
 
