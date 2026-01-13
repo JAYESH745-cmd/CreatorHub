@@ -11,7 +11,7 @@ const app = express();
 await connectCloudinary();
 
 app.use(cors({
-  origin: "https://creator-hub-nine.vercel.app",
+  origin: "https://creator-hub-nine.vercel.app/",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
