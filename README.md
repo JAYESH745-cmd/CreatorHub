@@ -1,6 +1,6 @@
 <div align="center">
 
-# CreatorHub 🚀
+# CreatorHub 
 
 AI-Powered Content Creation & Community Platform
 
@@ -19,14 +19,14 @@ AI-Powered Content Creation & Community Platform
 ![ClipDrop](https://img.shields.io/badge/ClipDrop-AI_Image_Tools-purple?style=flat-square)
 ![Clerk](https://img.shields.io/badge/Clerk-Authentication-6C47FF?style=flat-square&logo=clerk&logoColor=white)
 
-🌐 **Frontend Live on Vercel**  
-🛠️ **Backend deployed on Vercel**
+ **Frontend Live on Vercel**  
+ **Backend deployed on Vercel**
 Deployed Link: https://creator-hub-nine.vercel.app/
 </div>
 
 ---
 
-## 📚 Table of Contents
+##  Table of Contents
 
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -59,20 +59,20 @@ The platform is built using the **PERN stack** and integrates multiple AI servic
 
 ## Key Features
 
-### 🤖 AI Tools
-- 📝 **Article & content generation**
-- 🎨 **AI image generation**
-- 🖼️ **Background removal** (ClipDrop)
-- ✂️ **Object removal** from images
-- 🧠 **Smart prompt-based workflows**
+###  AI Tools
+- **Article & content generation**
+-  **AI image generation**
+-  **Background removal** (ClipDrop)
+-  **Object removal** from images
+-  **Smart prompt-based workflows**
 
-### 👥 Community & Engagement
+###  Community & Engagement
 - Public community feed
 - Like / unlike system
 - Published creations
 - User profiles
 
-### 🔐 User Experience
+###  User Experience
 - Secure authentication (Clerk)
 - User-specific dashboards
 - Protected routes
