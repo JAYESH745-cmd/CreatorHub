@@ -1,30 +1,37 @@
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import sql from "../configs/db.js";
-import { clerkClient } from "@clerk/express";
 import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+const client = new OpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY
 });
 
 export const generateArticle = async (req, res) => {
   try {
     const { userId } = req.auth();
-    const { aiContent, prompt } = req;
+    const { prompt, length } = req.body;
 
-    if (!aiContent || !prompt) {
-      return res.json({ success: false, message: "Content not received" });
-    }
+    const response = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: length
+    });
 
-    const info = await sql`SELECT current_database(), current_schema();`;
-    console.log(info);
+    const content = response.choices[0].message.content;
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${prompt}, ${aiContent}, 'article')`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${prompt}, ${content}, 'article') `;
 
-    res.json({ success: true, aiContent });
+    res.json({ success: true, content });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });
@@ -37,15 +44,20 @@ export const generateBlogTitle = async (req, res) => {
     const { prompt } = req.body;
 
     const response = await client.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
       temperature: 0.7,
-      max_tokens: 100,
+      max_tokens: 100
     });
 
     const content = response.choices[0].message.content;
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${prompt}, ${content}, 'blog-title')`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${prompt}, ${content}, 'blog-title') `;
 
     res.json({ success: true, content });
   } catch (error) {
@@ -61,8 +73,6 @@ export const generateImage = async (req, res) => {
 
     const formData = new FormData();
     formData.append("prompt", prompt);
-    console.log(formData);
-
     const { data } = await axios.post(
       "https://clipdrop-api.co/text-to-image/v1",
       formData,
@@ -72,12 +82,16 @@ export const generateImage = async (req, res) => {
       }
     );
 
-    const base64Image = `data:image/png;base64,${Buffer.from(data, "binary").toString("base64")}`;
+    const base64Image = `data:image/png;base64,${Buffer.from(
+      data,
+      "binary"
+    ).toString("base64")}`;
 
     const { secure_url } = await cloudinary.uploader.upload(base64Image);
-    console.log(secure_url);
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type, publish) VALUES (${userId}, ${prompt}, ${secure_url}, 'image', ${publish ?? false})`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type, publish) VALUES (${userId}, ${prompt}, ${secure_url}, 'image', ${
+      publish ?? false
+    }) `;
 
     res.json({ success: true, content: secure_url });
   } catch (error) {
@@ -100,7 +114,7 @@ export const removeImageBackground = async (req, res) => {
       ],
     });
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, 'Remove background from image', ${secure_url}, 'image')`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, 'Remove background from image', ${secure_url}, 'image') `;
 
     res.json({ success: true, content: secure_url });
   } catch (error) {
@@ -122,7 +136,7 @@ export const removeImageObject = async (req, res) => {
       resource_type: "image",
     });
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${`Removed ${object} from image`}, ${imageUrl}, 'image')`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, ${`Removed ${object} from image`}, ${imageUrl}, 'image') `;
 
     res.json({ success: true, content: imageUrl });
   } catch (error) {
@@ -149,15 +163,20 @@ export const resumeReview = async (req, res) => {
     const prompt = `Review the following resume and provide constructive feedback on its strengths, weaknesses, and areas for improvement. Resume Content:\n\n${pdfData.text}`;
 
     const response = await client.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 1000
     });
 
     const content = response.choices[0].message.content;
 
-    await sql`INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, 'Review the uploaded resume', ${content}, 'resume-review')`;
+    await sql` INSERT INTO creations (user_id, prompt, content, type) VALUES (${userId}, 'Review the uploaded resume', ${content}, 'resume-review') `;
 
     res.json({ success: true, content });
   } catch (error) {
