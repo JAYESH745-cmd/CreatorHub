@@ -26,8 +26,6 @@ const WriteArticle = () => {
     try {
       setLoading(true);
       const prompt = `Write an article about ${input} in ${selectedLength.text}`;
-      console.log(prompt);
-      console.log(selectedLength.length);
       const { data } = await axios.post(
         "/api/ai/generate-article",
         { prompt, length: selectedLength.length },
@@ -35,17 +33,16 @@ const WriteArticle = () => {
           headers: { Authorization: `Bearer ${await getToken()}` },
         }
       );
-      console.log(data);
       if (data.success) {
-        setContent(data.aiContent);
+        setContent(data.content); // ✅ fixed: was data.aiContent
       } else {
-        toast.error("heloo");
+        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setLoading(false); // ✅ fixed: moved to finally so it always runs
     }
-
-    setLoading(false);
   };
 
   return (
@@ -76,7 +73,7 @@ const WriteArticle = () => {
           {articleLength.map((item, index) => (
             <span
               onClick={() => setSelectedLength(item)}
-              className={`text-xs px-4 py-1 border rounded-full ${
+              className={`text-xs px-4 py-1 border rounded-full cursor-pointer ${
                 selectedLength.text === item.text
                   ? "bg-blue-50 text-blue-700"
                   : "text-gray-500 border-gray-300"
@@ -113,7 +110,7 @@ const WriteArticle = () => {
           <div className="flex-1 flex justify-center items-center">
             <div className="text-sm flex flex-col items-center gap-5 text-gray-400">
               <Edit className="w-9 h-9" />
-              <p>Enter a topic and click “Generate article ” to get started</p>
+              <p>Enter a topic and click "Generate article" to get started</p>
             </div>
           </div>
         ) : (
