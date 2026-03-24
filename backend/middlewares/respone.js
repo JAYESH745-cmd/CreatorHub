@@ -2,7 +2,6 @@ import OpenAI from "openai";
 
 export const getContent = async (req, res, next) => {
   try {
-   
     const { prompt, length } = req.body;
 
     if (!prompt) {
@@ -13,16 +12,18 @@ export const getContent = async (req, res, next) => {
     }
 
     const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: "https://api.groq.com/openai/v1",  // ✅ Groq endpoint
+      apiKey: process.env.GROQ_API_KEY,            // ✅ Groq key
     });
 
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: prompt,
+    const response = await client.chat.completions.create({  // ✅ Groq uses this
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_output_tokens: length ?? 500,
+      max_tokens: length ?? 500,                   // ✅ Groq uses max_tokens
     });
-    const content = response.output_text;
+
+    const content = response.choices[0].message.content;  // ✅ Groq response format
 
     if (!content) {
       return res.status(500).json({
@@ -31,12 +32,11 @@ export const getContent = async (req, res, next) => {
       });
     }
 
-    // pass ONLY what you need
     req.aiContent = content;
-    req.prompt=prompt;
+    req.prompt = prompt;
     next();
   } catch (error) {
-    console.error("OpenAI error:", error);
+    console.error("Groq error:", error);
     res.status(500).json({
       success: false,
       message: "Content generation failed",
