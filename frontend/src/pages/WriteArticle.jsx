@@ -4,10 +4,15 @@ import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 import Markdown from "react-markdown";
+import { useUser } from "@clerk/clerk-react";
+
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 const WriteArticle = () => {
+
+  const { getToken } = useAuth();
+
   const articleLength = [
     { length: 800, text: "Short (500-800 words)" },
     { length: 1200, text: "Medium (800-1200 words)" },
@@ -19,31 +24,44 @@ const WriteArticle = () => {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
 
-  const { getToken } = useAuth();
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    const token = await getToken();
+
+    if (!token) {
+      toast.error("You must be signed in to generate articles");
+      return;
+    }
+
     try {
       setLoading(true);
+
       const prompt = `Write an article about ${input} in ${selectedLength.text}`;
+
       const { data } = await axios.post(
         "/api/ai/generate-article",
         { prompt, length: selectedLength.length },
         {
-          headers: { Authorization: `Bearer ${await getToken()}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
+
       if (data.success) {
-        setContent(data.content); // ✅ fixed: was data.aiContent
+        setContent(data.content);
       } else {
-        toast.error(data.message || "Something went wrong");
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.message);
     } finally {
-      setLoading(false); // ✅ fixed: moved to finally so it always runs
+      setLoading(false);
     }
   };
+
 
   return (
     <div className="h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700">
@@ -73,7 +91,7 @@ const WriteArticle = () => {
           {articleLength.map((item, index) => (
             <span
               onClick={() => setSelectedLength(item)}
-              className={`text-xs px-4 py-1 border rounded-full cursor-pointer ${
+              className={`text-xs px-4 py-1 border rounded-full ${
                 selectedLength.text === item.text
                   ? "bg-blue-50 text-blue-700"
                   : "text-gray-500 border-gray-300"
@@ -110,7 +128,7 @@ const WriteArticle = () => {
           <div className="flex-1 flex justify-center items-center">
             <div className="text-sm flex flex-col items-center gap-5 text-gray-400">
               <Edit className="w-9 h-9" />
-              <p>Enter a topic and click "Generate article" to get started</p>
+              <p>Enter a topic and click “Generate article ” to get started</p>
             </div>
           </div>
         ) : (
